@@ -1,6 +1,7 @@
 package swaymsg
 
-type Swaymsg interface {
-	Send() (string, error)
-}
+const Executable = "swaymsg"
 
+type Swaymsg interface {
+	Send() ([]byte, error)
+}
