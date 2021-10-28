@@ -6,6 +6,7 @@ import (
 	"io"
 	"os/exec"
 	"strconv"
+	"strings"
 )
 
 type ErrWofiFailed struct {
@@ -15,11 +16,11 @@ type ErrWofiFailed struct {
 
 type ShowMenuWithWofi struct{}
 
-type SwitchWorkspacesMenuFactory struct{}
+type MenuFactory struct{}
 
 const Executable = "wofi"
 
-func (f SwitchWorkspacesMenuFactory) NewMenu() dmenu.MenuPresenter {
+func (f MenuFactory) NewMenuPresenter() dmenu.MenuPresenter {
 	return &ShowMenuWithWofi{}
 }
 
@@ -27,19 +28,20 @@ func (e *ErrWofiFailed) Error() string {
 	return fmt.Sprintf("wofi failed: %s", e.Output)
 }
 
-func (w ShowMenuWithWofi) Show(data dmenu.MenuData) (string, error) {
-	cmd := exec.Command(Executable, "--dmenu", "-L", strconv.Itoa(data.Lines))
+func (w ShowMenuWithWofi) Show(data dmenu.MenuData) (int, error) {
+	cmd := exec.Command(Executable, "--dmenu", "-L", strconv.Itoa(data.TotalLines()))
 	in, err := cmd.StdinPipe()
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 	go func() {
 		defer in.Close()
-		io.WriteString(in, data.Entries)
+		io.WriteString(in, data.AsString())
 	}()
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", &ErrWofiFailed{Output: string(out), Cause: err}
+		return 0, &ErrWofiFailed{Output: string(out), Cause: err}
 	}
-	return string(out), nil
+	entryNum, err := strconv.Atoi(strings.Trim(string(out), "\n"))
+	return entryNum, nil
 }

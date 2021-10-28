@@ -1,14 +1,14 @@
 package dmenu
 
-type MenuData struct {
-	Entries string
-	Lines   int
+type MenuData interface {
+	TotalLines() int
+	AsString() string
 }
 
 type MenuPresenter interface {
-	Show(data MenuData) (string, error)
+	Show(data MenuData) (int, error)
 }
 
 type MenuFactory interface {
-	NewMenu() MenuPresenter
+	NewMenuPresenter() MenuPresenter
 }

@@ -1,4 +1,4 @@
-package domain
+package workspace
 
 import (
 	"fmt"
@@ -90,6 +90,19 @@ func (workspaces *Workspaces) Find(ordinal int) (*FlatNode, error) {
 
 const MenuEntryBytesEstimate = 16
 
+type WorkspacesMenu struct {
+	entries string
+	lines   int
+}
+
+func (w WorkspacesMenu) TotalLines() int {
+	return w.lines
+}
+
+func (w WorkspacesMenu) AsString() string {
+	return w.entries
+}
+
 func (workspaces *Workspaces) ToMenuData() dmenu.MenuData {
 	menu := strings.Builder{}
 	menu.Grow(len(*workspaces) * MenuEntryBytesEstimate)
@@ -103,5 +116,5 @@ func (workspaces *Workspaces) ToMenuData() dmenu.MenuData {
 			menu.WriteString("\n")
 		}
 	}
-	return dmenu.MenuData{Entries: menu.String(), Lines: lines}
+	return WorkspacesMenu{entries: menu.String(), lines: lines}
 }

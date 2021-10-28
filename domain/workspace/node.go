@@ -1,4 +1,4 @@
-package domain
+package workspace
 
 type Node struct {
 	Nodes         []*Node `json:"nodes,omitempty"`

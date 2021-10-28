@@ -5,53 +5,55 @@ import (
 	"github.com/Dnnd/sway-window-switcher/dmenu"
 	"github.com/Dnnd/sway-window-switcher/dmenu/rofi"
 	"github.com/Dnnd/sway-window-switcher/dmenu/wofi"
-	"github.com/Dnnd/sway-window-switcher/domain"
-	"github.com/Dnnd/sway-window-switcher/swaymsg"
-	ji "github.com/json-iterator/go"
+	"github.com/Dnnd/sway-window-switcher/logind"
+	"github.com/Dnnd/sway-window-switcher/powermenu"
+	"github.com/Dnnd/sway-window-switcher/window"
 	"log"
+	"os"
 )
 
 func main() {
-	launcher := flag.String("launcher", "rofi", "program to display menu")
-	flag.Parse()
-	var menuFactory dmenu.MenuFactory
 
-	if *launcher == "rofi" {
-		menuFactory = rofi.SwitchWorkspacesMenuFactory{}
-	} else if *launcher == "wofi" {
-		menuFactory = wofi.SwitchWorkspacesMenuFactory{}
+	mode := flag.String("mode", "window", "mode")
+	var configFile string
+	flag.StringVar(&configFile, "config", "", "path to config file")
+	flag.Parse()
+	if configFile == "" {
+		xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")
+		if xdgConfigHome == "" {
+			xdgConfigHome = os.Getenv("HOME") + "/.config"
+		}
+		var configDir = xdgConfigHome + "/sway_menus"
+		configFile = configDir + "/config.toml"
+	}
+	config, err := LoadConfig(configFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var menuFactory dmenu.MenuFactory
+	if config.Launcher == "rofi" {
+		menuFactory = rofi.MenuFactory{}
+	} else if config.Launcher == "wofi" {
+		menuFactory = wofi.MenuFactory{}
 	} else {
 		log.Fatal("unknown launcher")
 	}
 
-	getTree := swaymsg.NewGetTree()
-	tree, err := getTree.Send()
-	if err != nil {
-		log.Fatal(err)
-	}
-	var root domain.Node
-	if err := ji.Unmarshal(tree, &root); err != nil {
-		log.Fatal(err)
-	}
-
-	workspaces := domain.ExtractWorkspaces(&root)
-
-	menu := menuFactory.NewMenu()
-	menuEntry, err := menu.Show(workspaces.ToMenuData())
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	ordinal, err := domain.ParseDmenuEntryNumber(menuEntry)
-	if err != nil {
-		log.Fatal(err)
-	}
-	leafToShow, err := workspaces.Find(ordinal)
-	if err != nil {
-		log.Fatal(err)
+	if *mode == "window" {
+		switcher := window.NewSwitcherService(menuFactory.NewMenuPresenter())
+		if err := switcher.Run(); err != nil {
+			log.Fatal(err)
+		}
+	} else if *mode == "powermenu" {
+		logindManager, err := logind.ConnectToLogindManager()
+		if err != nil {
+			log.Fatal(err)
+		}
+		powermenuService := powermenu.NewPowerMenuService(config.Powermenu, &logindManager, menuFactory.NewMenuPresenter())
+		if err := powermenuService.Run(); err != nil {
+			log.Fatal(err)
+		}
 	}
 
-	if _, err = swaymsg.NewFocusWindowMessage(leafToShow.Id).Send(); err != nil {
-		log.Fatal(err)
-	}
 }
