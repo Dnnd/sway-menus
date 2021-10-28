@@ -1,4 +1,4 @@
-package wofi
+package rofi
 
 import (
 	"fmt"
@@ -8,27 +8,27 @@ import (
 	"strconv"
 )
 
-type ErrWofiFailed struct {
+type ErrRofiFailed struct {
 	Output string
 	Cause  error
 }
 
-type ShowMenuWithWofi struct{}
+type ShowMenuWithRofi struct{}
 
 type SwitchWorkspacesMenuFactory struct{}
 
-const Executable = "wofi"
+const Executable = "rofi"
 
 func (f SwitchWorkspacesMenuFactory) NewMenu() dmenu.MenuPresenter {
-	return &ShowMenuWithWofi{}
+	return &ShowMenuWithRofi{}
 }
 
-func (e *ErrWofiFailed) Error() string {
-	return fmt.Sprintf("wofi failed: %s", e.Output)
+func (e *ErrRofiFailed) Error() string {
+	return fmt.Sprintf("rofi failed: %s", e.Output)
 }
 
-func (w ShowMenuWithWofi) Show(data dmenu.MenuData) (string, error) {
-	cmd := exec.Command(Executable, "--dmenu", "-L", strconv.Itoa(data.Lines))
+func (w ShowMenuWithRofi) Show(data dmenu.MenuData) (string, error) {
+	cmd := exec.Command(Executable, "-dmenu", "-l", strconv.Itoa(data.Lines), "-i", "-format", "i")
 	in, err := cmd.StdinPipe()
 	if err != nil {
 		return "", err
@@ -39,7 +39,7 @@ func (w ShowMenuWithWofi) Show(data dmenu.MenuData) (string, error) {
 	}()
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", &ErrWofiFailed{Output: string(out), Cause: err}
+		return "", &ErrRofiFailed{Output: string(out), Cause: err}
 	}
 	return string(out), nil
 }

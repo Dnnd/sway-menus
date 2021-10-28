@@ -1,12 +1,14 @@
-package workspace
+package domain
 
 import (
 	"fmt"
-	"github.com/Dnnd/sway-window-switcher/domain/node"
+	"github.com/Dnnd/sway-window-switcher/dmenu"
+	"strings"
 )
 
 type Workspaces []*Workspace
-type Leaves []*node.FlatNode
+type Leaves []*FlatNode
+
 type ErrLeafNotFound struct {
 	Ordinal int
 }
@@ -19,11 +21,11 @@ func (e *ErrLeafNotFound) Error() string {
 }
 
 type Workspace struct {
-	Root   *node.Node `json:"-"`
-	Leaves Leaves     `json:"nodes"`
+	Root   *Node  `json:"-"`
+	Leaves Leaves `json:"nodes"`
 }
 
-func ExtractWorkspaces(root *node.Node) Workspaces {
+func ExtractWorkspaces(root *Node) Workspaces {
 	workspaces := make(Workspaces, 0, WorkspacesCountEstimate)
 	extractWorkspacesImpl(root, &workspaces)
 	setOrdinals(workspaces)
@@ -40,9 +42,9 @@ func setOrdinals(workspaces Workspaces) {
 	}
 }
 
-func extractLeaves(root *node.Node, workspace *Workspace) {
+func extractLeaves(root *Node, workspace *Workspace) {
 	if len(root.Nodes) == 0 {
-		workspace.Leaves = append(workspace.Leaves, &node.FlatNode{
+		workspace.Leaves = append(workspace.Leaves, &FlatNode{
 			Name: root.Name,
 			Id:   root.Id,
 		})
@@ -56,7 +58,7 @@ func extractLeaves(root *node.Node, workspace *Workspace) {
 	}
 }
 
-func extractWorkspacesImpl(current *node.Node, workspaces *Workspaces) {
+func extractWorkspacesImpl(current *Node, workspaces *Workspaces) {
 	// skip scratchpad
 	if current.Name == "__i3" {
 		return
@@ -64,7 +66,7 @@ func extractWorkspacesImpl(current *node.Node, workspaces *Workspaces) {
 	if current.Type == "workspace" {
 		workspace := &Workspace{
 			Root:   current,
-			Leaves: make([]*node.FlatNode, 0, LeavesCountEstimate),
+			Leaves: make([]*FlatNode, 0, LeavesCountEstimate),
 		}
 		extractLeaves(current, workspace)
 		*workspaces = append(*workspaces, workspace)
@@ -75,7 +77,7 @@ func extractWorkspacesImpl(current *node.Node, workspaces *Workspaces) {
 	}
 }
 
-func (workspaces *Workspaces) Find(ordinal int) (*node.FlatNode, error) {
+func (workspaces *Workspaces) Find(ordinal int) (*FlatNode, error) {
 	for _, ws := range *workspaces {
 		for _, leaf := range ws.Leaves {
 			if leaf.Ordinal == ordinal {
@@ -84,4 +86,22 @@ func (workspaces *Workspaces) Find(ordinal int) (*node.FlatNode, error) {
 		}
 	}
 	return nil, &ErrLeafNotFound{Ordinal: ordinal}
+}
+
+const MenuEntryBytesEstimate = 16
+
+func (workspaces *Workspaces) ToMenuData() dmenu.MenuData {
+	menu := strings.Builder{}
+	menu.Grow(len(*workspaces) * MenuEntryBytesEstimate)
+	lines := 0
+	for _, ws := range *workspaces {
+		lines += len(ws.Leaves)
+		for _, node := range ws.Leaves {
+			menu.WriteString(ws.Root.Name)
+			menu.WriteString("\t")
+			menu.WriteString(node.Name)
+			menu.WriteString("\n")
+		}
+	}
+	return dmenu.MenuData{Entries: menu.String(), Lines: lines}
 }

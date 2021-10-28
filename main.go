@@ -1,42 +1,57 @@
 package main
 
 import (
+	"flag"
+	"github.com/Dnnd/sway-window-switcher/dmenu"
+	"github.com/Dnnd/sway-window-switcher/dmenu/rofi"
 	"github.com/Dnnd/sway-window-switcher/dmenu/wofi"
-	"github.com/Dnnd/sway-window-switcher/domain/node"
-	"github.com/Dnnd/sway-window-switcher/domain/workspace"
+	"github.com/Dnnd/sway-window-switcher/domain"
 	"github.com/Dnnd/sway-window-switcher/swaymsg"
 	ji "github.com/json-iterator/go"
 	"log"
 )
 
 func main() {
+	launcher := flag.String("launcher", "rofi", "program to display menu")
+	flag.Parse()
+	var menuFactory dmenu.MenuFactory
+
+	if *launcher == "rofi" {
+		menuFactory = rofi.SwitchWorkspacesMenuFactory{}
+	} else if *launcher == "wofi" {
+		menuFactory = wofi.SwitchWorkspacesMenuFactory{}
+	} else {
+		log.Fatal("unknown launcher")
+	}
+
 	getTree := swaymsg.NewGetTree()
 	tree, err := getTree.Send()
 	if err != nil {
 		log.Fatal(err)
 	}
-	var root node.Node
+	var root domain.Node
 	if err := ji.Unmarshal(tree, &root); err != nil {
 		log.Fatal(err)
 	}
 
-	workspaces := workspace.ExtractWorkspaces(&root)
+	workspaces := domain.ExtractWorkspaces(&root)
 
-	dmenu := wofi.NewWofiDmenuCommand(workspaces.ToDmenu())
-	dmenuEntry, err := dmenu.Show()
+	menu := menuFactory.NewMenu()
+	menuEntry, err := menu.Show(workspaces.ToMenuData())
+
 	if err != nil {
 		log.Fatal(err)
 	}
-	ordinal, err := wofi.ParseWofiDmenuEntryNumber(dmenuEntry)
+	ordinal, err := domain.ParseDmenuEntryNumber(menuEntry)
 	if err != nil {
 		log.Fatal(err)
 	}
-	leaveToShow, err := workspaces.Find(ordinal)
+	leafToShow, err := workspaces.Find(ordinal)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if _, err = swaymsg.NewFocusWindowMessage(leaveToShow.Id).Send(); err != nil {
+	if _, err = swaymsg.NewFocusWindowMessage(leafToShow.Id).Send(); err != nil {
 		log.Fatal(err)
 	}
 }
