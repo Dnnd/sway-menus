@@ -35,19 +35,19 @@ func (m Manager) TerminateSession(sessionID string) error {
 }
 
 func (m Manager) Reboot() error {
-	return m.obj.Call(Reboot, 0).Err
+	return m.obj.Call(Reboot, 0, false).Err
 }
 
 func (m Manager) PowerOff() error {
-	return m.obj.Call(PowerOff, 0).Err
+	return m.obj.Call(PowerOff, 0, false).Err
 }
 
 func (m Manager) Suspend() error {
-	return m.obj.Call(Suspend, 0).Err
+	return m.obj.Call(Suspend, 0, false).Err
 }
 
 func (m Manager) Hibernate() error {
-	return m.obj.Call(Hibernate, 0).Err
+	return m.obj.Call(Hibernate, 0, false).Err
 }
 
 func getCurrentSession() string {

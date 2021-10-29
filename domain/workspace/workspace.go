@@ -2,7 +2,7 @@ package workspace
 
 import (
 	"fmt"
-	"github.com/Dnnd/sway-window-switcher/dmenu"
+	"github.com/Dnnd/sway-menus/dmenu"
 	"strings"
 )
 

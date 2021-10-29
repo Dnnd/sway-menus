@@ -1,4 +1,4 @@
-module github.com/Dnnd/sway-window-switcher
+module github.com/Dnnd/sway-menus
 
 go 1.17
 

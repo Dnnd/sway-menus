@@ -1,7 +1,7 @@
 package main
 
 import (
-	generic "github.com/Dnnd/sway-window-switcher/domain/generic_menu"
+	generic "github.com/Dnnd/sway-menus/domain/generic_menu"
 	"github.com/pelletier/go-toml/v2"
 	"os"
 )

@@ -2,9 +2,9 @@ package powermenu
 
 import (
 	"errors"
-	"github.com/Dnnd/sway-window-switcher/dmenu"
-	generic "github.com/Dnnd/sway-window-switcher/domain/generic_menu"
-	"github.com/Dnnd/sway-window-switcher/logind"
+	"github.com/Dnnd/sway-menus/dmenu"
+	generic "github.com/Dnnd/sway-menus/domain/generic_menu"
+	"github.com/Dnnd/sway-menus/logind"
 )
 
 type PowermenuSerivce struct {

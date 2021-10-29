@@ -2,12 +2,12 @@ package main
 
 import (
 	"flag"
-	"github.com/Dnnd/sway-window-switcher/dmenu"
-	"github.com/Dnnd/sway-window-switcher/dmenu/rofi"
-	"github.com/Dnnd/sway-window-switcher/dmenu/wofi"
-	"github.com/Dnnd/sway-window-switcher/logind"
-	"github.com/Dnnd/sway-window-switcher/powermenu"
-	"github.com/Dnnd/sway-window-switcher/window"
+	"github.com/Dnnd/sway-menus/dmenu"
+	"github.com/Dnnd/sway-menus/dmenu/rofi"
+	"github.com/Dnnd/sway-menus/dmenu/wofi"
+	"github.com/Dnnd/sway-menus/logind"
+	"github.com/Dnnd/sway-menus/powermenu"
+	"github.com/Dnnd/sway-menus/window"
 	"log"
 	"os"
 )

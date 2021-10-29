@@ -2,7 +2,7 @@ package rofi
 
 import (
 	"fmt"
-	"github.com/Dnnd/sway-window-switcher/dmenu"
+	"github.com/Dnnd/sway-menus/dmenu"
 	"io"
 	"os/exec"
 	"strconv"

@@ -1,9 +1,9 @@
 package window
 
 import (
-	"github.com/Dnnd/sway-window-switcher/dmenu"
-	"github.com/Dnnd/sway-window-switcher/domain/workspace"
-	"github.com/Dnnd/sway-window-switcher/swaymsg"
+	"github.com/Dnnd/sway-menus/dmenu"
+	"github.com/Dnnd/sway-menus/domain/workspace"
+	"github.com/Dnnd/sway-menus/swaymsg"
 	ji "github.com/json-iterator/go"
 )
 
